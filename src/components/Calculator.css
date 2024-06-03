@@ -1,0 +1,157 @@
+/* Custom font */
+@import url("https://fonts.googleapis.com/css?family=Montserrat");
+
+/* Basic reset */
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: "Montserrat", "Arial", "Verdana";
+	height: 100%;
+}
+
+/* Form styles */
+#msform {
+	width: 400px;
+	margin: 230px auto;
+	text-align: center;
+	position: relative;
+}
+
+#msform fieldset {
+	background: white;
+	border: none;
+	border-radius: 3px;
+	box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.4);
+	padding: 20px 30px;
+	box-sizing: border-box;
+	width: 80%;
+	margin: 0 10%;
+	position: relative;
+}
+
+/* Inputs */
+#msform input,
+#msform textarea {
+	padding: 15px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	margin-bottom: 10px;
+	width: 100%;
+	box-sizing: border-box;
+	color: #2c3e50;
+	font-size: 13px;
+}
+
+/* Buttons */
+#msform .action-button {
+	width: 100px;
+	background: #27ae60;
+	font-weight: bold;
+	color: white;
+	border: none;
+	border-radius: 3px;
+	cursor: pointer;
+	padding: 10px;
+	margin: 10px 5px;
+	text-decoration: none;
+	font-size: 14px;
+}
+
+#msform .action-button:hover,
+#msform .action-button:focus {
+	box-shadow: 0 0 0 2px white, 0 0 0 3px #27ae60;
+}
+
+/* Headings */
+.fs-title {
+	font-size: 15px;
+	text-transform: uppercase;
+	color: #2c3e50;
+	margin-bottom: 10px;
+}
+
+.fs-subtitle {
+	font-weight: normal;
+	font-size: 16px;
+	color: #666;
+	margin-bottom: 20px;
+}
+
+/* Progressbar */
+#progressbar {
+	margin-top: 6rem;
+	margin-bottom: 30px;
+	overflow: hidden;
+	counter-reset: step;
+}
+
+#progressbar li {
+	list-style-type: none;
+	color: white;
+	text-transform: uppercase;
+	font-size: 9px;
+	width: 33.33%;
+	float: left;
+	position: relative;
+}
+
+#progressbar li:before {
+	content: counter(step);
+	counter-increment: step;
+	width: 20px;
+	line-height: 20px;
+	display: block;
+	font-size: 10px;
+	color: #333;
+	background: white;
+	border-radius: 3px;
+	margin: 0 auto 5px auto;
+}
+
+#progressbar li.active:before,
+#progressbar li.active:after {
+	background: #27ae60;
+	color: white;
+}
+
+/* Additional styles */
+textarea[name="address"] {
+	height: 80px;
+}
+.robot-container {
+	position: absolute;
+	top: 100px; /* Adjust position as needed */
+	left: 50%; /* Center horizontally */
+	transform: translateX(-50%);
+}
+
+.robot-gif {
+	width: 240px; /* Adjust size as needed */
+	height: 150px;
+}
+
+/* Starts Here */
+
+input[type="text"],
+input[type="number"],
+input[type="button"] {
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 10px;
+	border-radius: 5px;
+	border: 1px solid #ddd;
+}
+
+input[type="button"] {
+	background-color: #007bff;
+	color: white;
+	cursor: pointer;
+}
+
+.error {
+	color: red;
+	text-align: center;
+}
