@@ -12,6 +12,7 @@ const Calculator = () => {
     const [personalizedMessage, setPersonalizedMessage] = useState('');
     const [aimPreference, setAimPreference] = useState('');
     const [sensitivityFeedback, setSensitivityFeedback] = useState('');
+    const [currentSensitivity, setCurrentSensitivity] = useState('');
 
     useEffect(() => {
         fetchGames();
@@ -61,7 +62,7 @@ const Calculator = () => {
 
     const fetchPersonalizedMessage = async () => {
         const { game } = request;
-        const sens1 = answer;
+        const sens1 = currentSensitivity; // Use currentSensitivity instead of answer
 
         const prompt = `Based on the game ${game} and the sensitivity ${sens1}, provide a personalized message for the user who prefers aiming with their ${aimPreference}.`;
 
@@ -92,6 +93,7 @@ const Calculator = () => {
         const { gameid } = request;
         const sens1 = answer;
         const url = `http://localhost:3002/calculateValue?gameid1=${gameid}&sens1=${sens1}&gameid2=2347`;
+
         try {
             const response = await fetch(url);
             if (!response.ok) {
@@ -99,9 +101,8 @@ const Calculator = () => {
             }
 
             const data = await response.json();
+            console.log(data[0]?.sens1);
             setSens1Value(data[0]?.sens1);
-
-            console.log(data);
         } catch (error) {
             console.error('Error calculating value:', error);
             setError('Failed to calculate value. Please try again.');
@@ -115,7 +116,7 @@ const Calculator = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ overWatchSens: answer, aimPreference, dpi: 800 }),
+                body: JSON.stringify({ overWatchSens: currentSensitivity, aimPreference, dpi: 800 }), // Use currentSensitivity instead of answer
             });
 
             if (!response.ok) {
@@ -123,17 +124,15 @@ const Calculator = () => {
             }
 
             const data = await response.json();
-            console.log('Sensitivity feedback received:', data);
+            // console.log('Sensitivity feedback received:', data);
             setSensitivityFeedback(`Pros: ${data.feedback.pros}\nCons: ${data.feedback.cons}`);
 
-            console.log(data.feedback)
+            // console.log(data.feedback)
         } catch (error) {
             console.error('Error fetching sensitivity feedback:', error);
             setError('Failed to fetch sensitivity feedback. Please try again.');
         }
     };
-
-
 
     const handleQuestionThree = (preference) => {
         setAimPreference(preference);
@@ -155,7 +154,6 @@ const Calculator = () => {
     };
 
     const fetchZigzagImage = async (sensitivity) => {
-        console.log(sensitivity)
         const url = `http://localhost:3002/generateZigzag?width=200&height=150&sensitivity=${sensitivity}`;
 
         try {
@@ -244,6 +242,7 @@ const Calculator = () => {
                             onClick={() => {
                                 const isValid = verifyRange();
                                 if (isValid) {
+                                    setCurrentSensitivity(answer); // Set the current sensitivity value
                                     calculateValue();
                                     clearInput();
                                     nextStep();
@@ -259,13 +258,13 @@ const Calculator = () => {
                         <h3 className="fs-subtitle">Question # 3</h3>
                         <h2 className="fs-title">Do you prefer aiming with your arm, wrist, or fingers?</h2>
                         <label>
-                            <input type="radio" name="aimPreference" value="arm" /> Arm
+                            <input type="radio" name="aimPreference" value="arm" onClick={() => setAimPreference('arm')} /> Arm
                         </label>
                         <label>
-                            <input type="radio" name="aimPreference" value="wrist" /> Wrist
+                            <input type="radio" name="aimPreference" value="wrist" onClick={() => setAimPreference('wrist')} /> Wrist
                         </label>
                         <label>
-                            <input type="radio" name="aimPreference" value="finger" /> Finger
+                            <input type="radio" name="aimPreference" value="finger" onClick={() => setAimPreference('finger')} /> Finger
                         </label>
                         <input
                             type="button"
@@ -280,9 +279,7 @@ const Calculator = () => {
                             type="button"
                             className="next action-button"
                             value="Next"
-                            onClick={() => handleQuestionThree(
-                                document.querySelector('input[name="aimPreference"]:checked').value
-                            )}
+                            onClick={() => handleQuestionThree(aimPreference)}
                         />
                     </fieldset>
                 );
@@ -292,7 +289,7 @@ const Calculator = () => {
                         <h3 className="fs-subtitle">Summary</h3>
                         <h2 className="fs-title">Here is your personalized sensitivity recommendation:</h2>
                         <p>Game: {request.game}</p>
-                        <p>Current Sensitivity: {answer}</p>
+                        <p>Current Sensitivity: {currentSensitivity}</p> {/* Display the current sensitivity */}
                         <p>Calculated Sensitivity Value: {sens1Value}</p>
                         <p className="text-primary">Personalized Message: {personalizedMessage}</p>
                         <p className="text-primary">Sensitivity Feedback: {sensitivityFeedback}</p>
@@ -321,4 +318,3 @@ const Calculator = () => {
 };
 
 export default Calculator;
-
