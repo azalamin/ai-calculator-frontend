@@ -51,9 +51,10 @@ const Calculator = () => {
     };
 
     const verifyRange = () => {
-        const { sens1min, sens1max } = request;
+        const sens1min = 0.01;
+        const sens1max = 100;
         if (answer < sens1min || answer > sens1max) {
-            setError(`Invalid sensitivity range for this game. Valid values are ${sens1min} to ${sens1max}`);
+            setError(`Invalid sensitivity range. Valid values are ${sens1min} to ${sens1max}`);
             return false;
         }
         setError('');
@@ -125,7 +126,8 @@ const Calculator = () => {
 
             const data = await response.json();
             // console.log('Sensitivity feedback received:', data);
-            setSensitivityFeedback(`Pros: ${data.feedback.pros}\nCons: ${data.feedback.cons}`);
+            // setSensitivityFeedback(`Pros: ${data.feedback.pros}\nCons: ${data.feedback.cons}`);
+            setSensitivityFeedback(data.feedback);
 
             // console.log(data.feedback)
         } catch (error) {
@@ -292,7 +294,12 @@ const Calculator = () => {
                         <p>Current Sensitivity: {currentSensitivity}</p> {/* Display the current sensitivity */}
                         <p>Calculated Sensitivity Value: {sens1Value}</p>
                         <p className="text-primary">Personalized Message: {personalizedMessage}</p>
-                        <p className="text-primary">Sensitivity Feedback: {sensitivityFeedback}</p>
+
+                        <div className="text-primary">
+                            <span>Sensitivity Feedback: </span><br /> <br /> <span className="text-secondary form-text">Pros: {sensitivityFeedback.pros}</span>
+                            <br /> <br />
+                            <span className="text-danger form-text">Cons: {sensitivityFeedback.cons}</span>
+                        </div>
                         <img id="zigzagImage" alt="Zigzag Pattern" />
                         <input
                             type="button"
