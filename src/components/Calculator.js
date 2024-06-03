@@ -125,11 +125,15 @@ const Calculator = () => {
             const data = await response.json();
             console.log('Sensitivity feedback received:', data);
             setSensitivityFeedback(`Pros: ${data.feedback.pros}\nCons: ${data.feedback.cons}`);
+
+            console.log(data.feedback)
         } catch (error) {
             console.error('Error fetching sensitivity feedback:', error);
             setError('Failed to fetch sensitivity feedback. Please try again.');
         }
     };
+
+
 
     const handleQuestionThree = (preference) => {
         setAimPreference(preference);
@@ -149,6 +153,33 @@ const Calculator = () => {
     const prevStep = () => {
         setStep((prevStep) => prevStep - 1);
     };
+
+    const fetchZigzagImage = async (sensitivity) => {
+        console.log(sensitivity)
+        const url = `http://localhost:3002/generateZigzag?width=200&height=150&sensitivity=${sensitivity}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Failed to fetch zigzag image.');
+            }
+
+            const blob = await response.blob();
+            const urlCreator = window.URL || window.webkitURL;
+            const imageUrl = urlCreator.createObjectURL(blob);
+
+            document.getElementById('zigzagImage').src = imageUrl;
+        } catch (error) {
+            console.error('Error fetching zigzag image:', error);
+            setError('Failed to fetch zigzag image. Please try again.');
+        }
+    };
+
+    useEffect(() => {
+        if (step === 4) {
+            fetchZigzagImage(sens1Value);
+        }
+    }, [step]);
 
     const renderStep = (currentStep) => {
         switch (currentStep) {
@@ -226,7 +257,7 @@ const Calculator = () => {
                 return (
                     <fieldset>
                         <h3 className="fs-subtitle">Question # 3</h3>
-                        <h2 className="fs-title">Do you prefer aiming with your arm, wrist or fingers?</h2>
+                        <h2 className="fs-title">Do you prefer aiming with your arm, wrist, or fingers?</h2>
                         <label>
                             <input type="radio" name="aimPreference" value="arm" /> Arm
                         </label>
@@ -234,7 +265,7 @@ const Calculator = () => {
                             <input type="radio" name="aimPreference" value="wrist" /> Wrist
                         </label>
                         <label>
-                            <input type="radio" name="aimPreference" value="fingers" /> Fingers
+                            <input type="radio" name="aimPreference" value="finger" /> Finger
                         </label>
                         <input
                             type="button"
@@ -249,11 +280,9 @@ const Calculator = () => {
                             type="button"
                             className="next action-button"
                             value="Next"
-                            onClick={() =>
-                                handleQuestionThree(
-                                    document.querySelector('input[name="aimPreference"]:checked').value
-                                )
-                            }
+                            onClick={() => handleQuestionThree(
+                                document.querySelector('input[name="aimPreference"]:checked').value
+                            )}
                         />
                     </fieldset>
                 );
@@ -267,6 +296,7 @@ const Calculator = () => {
                         <p>Calculated Sensitivity Value: {sens1Value}</p>
                         <p className="text-primary">Personalized Message: {personalizedMessage}</p>
                         <p className="text-primary">Sensitivity Feedback: {sensitivityFeedback}</p>
+                        <img id="zigzagImage" alt="Zigzag Pattern" />
                         <input
                             type="button"
                             className="previous action-button"
@@ -291,3 +321,4 @@ const Calculator = () => {
 };
 
 export default Calculator;
+
