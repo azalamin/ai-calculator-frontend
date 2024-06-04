@@ -6,7 +6,7 @@ const Calculator = () => {
     const [error, setError] = useState('');
     const [step, setStep] = useState(1);
     const [games, setGames] = useState({});
-    const [GameList, setGameList] = useState([]);
+    const [gameList, setGameList] = useState([]);
     const [request, setRequest] = useState({});
     const [sens1Value, setSens1Value] = useState(null);
     const [personalizedMessage, setPersonalizedMessage] = useState('');
@@ -62,7 +62,7 @@ const Calculator = () => {
 
     const fetchPersonalizedMessage = async () => {
         const { game } = request;
-        const sens1 = currentSensitivity; // Use currentSensitivity instead of answer
+        const sens1 = currentSensitivity;
 
         const prompt = `Based on the game ${game} and the sensitivity ${sens1}, provide a personalized message for the user who prefers aiming with their ${aimPreference}.`;
 
@@ -116,7 +116,7 @@ const Calculator = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ calculatedSens: Number(calculatedSens), aimPreference, dpi: 800 }), // Use calculatedSens as a number
+                body: JSON.stringify({ calculatedSens: Number(calculatedSens), aimPreference, dpi: 800 }),
             });
 
             if (!response.ok) {
@@ -133,8 +133,8 @@ const Calculator = () => {
 
     const handleQuestionThree = (preference) => {
         setAimPreference(preference);
-        fetchPersonalizedMessage(); // Fetch personalized message before moving to next step
-        fetchSensitivityFeedback(sens1Value); // Fetch sensitivity feedback using calculated sensitivity
+        fetchPersonalizedMessage();
+        fetchSensitivityFeedback(sens1Value);
         nextStep();
     };
 
@@ -192,7 +192,7 @@ const Calculator = () => {
                             list="suggestion"
                         />
                         <datalist id="suggestion">
-                            {GameList.map((game, index) => (
+                            {gameList.map((game, index) => (
                                 <option key={index} value={game} />
                             ))}
                         </datalist>
@@ -239,7 +239,7 @@ const Calculator = () => {
                             onClick={() => {
                                 const isValid = verifyRange();
                                 if (isValid) {
-                                    setCurrentSensitivity(answer); // Set the current sensitivity value
+                                    setCurrentSensitivity(answer);
                                     calculateValue();
                                     clearInput();
                                     nextStep();
@@ -286,7 +286,7 @@ const Calculator = () => {
                         <h3 className="fs-subtitle">Summary</h3>
                         <h2 className="fs-title">Here is your personalized sensitivity recommendation:</h2>
                         <p>Game: {request.game}</p>
-                        <p>Current Sensitivity: {currentSensitivity}</p> {/* Display the current sensitivity */}
+                        <p>Current Sensitivity: {currentSensitivity}</p>
                         <p>Calculated Sensitivity Value: {sens1Value}</p>
                         <p className="text-primary">Personalized Message: {personalizedMessage}</p>
 
