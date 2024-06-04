@@ -26,7 +26,6 @@ const Calculator = () => {
             }
             const data = await response.json();
             setGames(data);
-            console.log(data);
             const stringArray = Object.values(data).map((game) => game.game);
             setGameList(stringArray);
         } catch (error) {
@@ -110,14 +109,14 @@ const Calculator = () => {
         }
     };
 
-    const fetchSensitivityFeedback = async () => {
+    const fetchSensitivityFeedback = async (calculatedSens) => {
         try {
             const response = await fetch('http://localhost:3002/convertSensitivity', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ overWatchSens: currentSensitivity, aimPreference, dpi: 800 }), // Use currentSensitivity instead of answer
+                body: JSON.stringify({ calculatedSens: Number(calculatedSens), aimPreference, dpi: 800 }), // Use calculatedSens as a number
             });
 
             if (!response.ok) {
@@ -125,11 +124,7 @@ const Calculator = () => {
             }
 
             const data = await response.json();
-            // console.log('Sensitivity feedback received:', data);
-            // setSensitivityFeedback(`Pros: ${data.feedback.pros}\nCons: ${data.feedback.cons}`);
             setSensitivityFeedback(data.feedback);
-
-            // console.log(data.feedback)
         } catch (error) {
             console.error('Error fetching sensitivity feedback:', error);
             setError('Failed to fetch sensitivity feedback. Please try again.');
@@ -139,7 +134,7 @@ const Calculator = () => {
     const handleQuestionThree = (preference) => {
         setAimPreference(preference);
         fetchPersonalizedMessage(); // Fetch personalized message before moving to next step
-        fetchSensitivityFeedback(); // Fetch sensitivity feedback before moving to next step
+        fetchSensitivityFeedback(sens1Value); // Fetch sensitivity feedback using calculated sensitivity
         nextStep();
     };
 
