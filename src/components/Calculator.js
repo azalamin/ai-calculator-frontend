@@ -13,10 +13,15 @@ const Calculator = () => {
     const [aimPreference, setAimPreference] = useState('');
     const [sensitivityFeedback, setSensitivityFeedback] = useState('');
     const [currentSensitivity, setCurrentSensitivity] = useState('');
+    const [gptSuggestion, setGptSuggestion] = useState('');
+    const [userQuery, setUserQuery] = useState('');
+    const [improvementType, setImprovementType] = useState('');
 
     useEffect(() => {
         fetchGames();
     }, []);
+
+
 
     const fetchGames = async () => {
         try {
@@ -37,6 +42,12 @@ const Calculator = () => {
     const handleInputChange = (event) => {
         setAnswer(event.target.value);
     };
+
+
+    const handleUserQueryChange = (event) => {
+        setUserQuery(event.target.value);
+    };
+
 
     const verifyGame = () => {
         const foundGame = Object.values(games).find((game) => game.game === answer);
@@ -89,6 +100,30 @@ const Calculator = () => {
         }
     };
 
+    const fetchGptSuggestion = async () => {
+        try {
+            const response = await fetch('http://localhost:3002/gptSuggestion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: userQuery, aimPreference }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch GPT suggestion.');
+            }
+
+            const data = await response.json();
+            setGptSuggestion(data.suggestion);
+            console.log(data)
+        } catch (error) {
+            console.error('Error fetching GPT suggestion:', error);
+            setError('Failed to fetch GPT suggestion. Please try again.');
+        }
+    };
+
+
     const calculateValue = async () => {
         const { gameid } = request;
         const sens1 = answer;
@@ -136,6 +171,31 @@ const Calculator = () => {
         fetchPersonalizedMessage(); // Fetch personalized message before moving to next step
         fetchSensitivityFeedback(sens1Value); // Fetch sensitivity feedback using calculated sensitivity
         nextStep();
+    };
+
+    const handleImprovementRequest = async () => {
+        const { gameid } = request;
+        try {
+            const response = await fetch('http://localhost:3002/adjustSensitivity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sensitivity: sens1Value, aimPreference, improvement: improvementType, gameid }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to adjust sensitivity.');
+            }
+
+            const data = await response.json();
+            setSens1Value(data[0]?.sens1);
+            console.log(data)
+            setError('');
+        } catch (error) {
+            console.error('Error adjusting sensitivity:', error);
+            setError('Failed to adjust sensitivity. Please try again.');
+        }
     };
 
     const clearInput = () => {
@@ -295,6 +355,48 @@ const Calculator = () => {
                             <br /> <br />
                             <span className="text-danger form-text">Cons: {sensitivityFeedback.cons}</span>
                         </div>
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Ask GPT for suggestions"
+                                value={userQuery}
+                                onChange={handleUserQueryChange}
+                            />
+                            <button type="button" className="btn btn-primary mt-2" onClick={fetchGptSuggestion}>Get Suggestion</button>
+                            {gptSuggestion && (
+                                <p className="gpt-suggestion">GPT Suggestion: {gptSuggestion}</p>
+                            )}
+                        </div>
+                        {/* <div className="form-group mt-3">
+                            <label className="font-weight-bold">Select Improvement Type:</label><br />
+                            <div className="d-flex justify-content-center">
+                                <div className="form-check">
+                                    <input
+                                        className=""
+                                        type="radio"
+                                        name="improvementType"
+                                        value="tracking"
+                                        id="tracking"
+                                        onClick={() => setImprovementType('tracking')}
+                                    />
+                                    <label className="form-check-label" htmlFor="tracking">Tracking</label>
+                                </div>
+                                <div className="form-check">
+                                    <input
+                                        className=""
+                                        type="radio"
+                                        name="improvementType"
+                                        value="pencil"
+                                        id="pencil"
+                                        onClick={() => setImprovementType('pencil')}
+                                    />
+                                    <label className="form-check-label" htmlFor="pencil">Pencil Aim</label>
+                                </div>
+                            </div>
+                            <button type="button" className="btn btn-primary mt-2" onClick={handleImprovementRequest}>
+                                Adjust Sensitivity
+                            </button>
+                        </div> */}
                         <img id="zigzagImage" alt="Zigzag Pattern" />
                         <input
                             type="button"
