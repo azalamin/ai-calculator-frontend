@@ -364,7 +364,7 @@ const Calculator = () => {
                             />
                             <button type="button" className="btn btn-primary mt-2" onClick={fetchGptSuggestion}>Get Suggestion</button>
                             {gptSuggestion && (
-                                <p className="gpt-suggestion">GPT Suggestion: {gptSuggestion}</p>
+                                <p className="gpt-suggestion mt-3">GPT Suggestion: {gptSuggestion}</p>
                             )}
                         </div>
                         {/* <div className="form-group mt-3">
