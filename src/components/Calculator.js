@@ -368,10 +368,10 @@ const Calculator = () => {
                             />
                             <button type="button" className="btn btn-primary mt-2" onClick={fetchGptSuggestion}>Get Suggestion</button>
                             {gptSuggestion && (
-                                <div className="gpt-suggestion">
-                                    <p><strong>GPT Suggestion:</strong> {gptSuggestion}, Suggested Sensitivity Value is: {sens1Value}</p>
-                                    <p><strong>Pros:</strong> {gptPros}</p>
-                                    <p><strong>Cons:</strong> {gptCons}</p>
+                                <div className="gpt-suggestion mt-3">
+                                    <p ><strong>GPT Suggestion: <br /></strong> Suggested Sensitivity Value is: {sens1Value} <br /> {gptSuggestion}</p>
+                                    <p className="text-success"><strong>Pros:</strong> {gptPros}</p>
+                                    <p className="text-danger"><strong>Cons:</strong> {gptCons}</p>
                                 </div>
                             )}
                         </div>
