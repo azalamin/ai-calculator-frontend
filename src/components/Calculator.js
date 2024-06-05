@@ -16,6 +16,8 @@ const Calculator = () => {
     const [gptSuggestion, setGptSuggestion] = useState('');
     const [userQuery, setUserQuery] = useState('');
     const [improvementType, setImprovementType] = useState('');
+    const [gptPros, setGptPros] = useState('');
+    const [gptCons, setGptCons] = useState('');
 
     useEffect(() => {
         fetchGames();
@@ -107,7 +109,7 @@ const Calculator = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ query: userQuery, aimPreference }),
+                body: JSON.stringify({ query: userQuery, aimPreference, currentSensitivity: sens1Value }),
             });
 
             if (!response.ok) {
@@ -116,7 +118,9 @@ const Calculator = () => {
 
             const data = await response.json();
             setGptSuggestion(data.suggestion);
-            console.log(data)
+            setGptPros(data.pros);
+            setGptCons(data.cons);
+            setSens1Value(data.newSensitivity);
         } catch (error) {
             console.error('Error fetching GPT suggestion:', error);
             setError('Failed to fetch GPT suggestion. Please try again.');
@@ -358,13 +362,17 @@ const Calculator = () => {
                         <div>
                             <input
                                 type="text"
-                                placeholder="Ask GPT for suggestions"
+                                placeholder="Ask me for suggestions"
                                 value={userQuery}
                                 onChange={handleUserQueryChange}
                             />
                             <button type="button" className="btn btn-primary mt-2" onClick={fetchGptSuggestion}>Get Suggestion</button>
                             {gptSuggestion && (
-                                <p className="gpt-suggestion mt-3">GPT Suggestion: {gptSuggestion}</p>
+                                <div className="gpt-suggestion">
+                                    <p><strong>GPT Suggestion:</strong> {gptSuggestion}, Suggested Sensitivity Value is: {sens1Value}</p>
+                                    <p><strong>Pros:</strong> {gptPros}</p>
+                                    <p><strong>Cons:</strong> {gptCons}</p>
+                                </div>
                             )}
                         </div>
                         {/* <div className="form-group mt-3">
