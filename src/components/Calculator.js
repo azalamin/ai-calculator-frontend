@@ -18,6 +18,7 @@ const Calculator = () => {
     const [improvementType, setImprovementType] = useState('');
     const [gptPros, setGptPros] = useState('');
     const [gptCons, setGptCons] = useState('');
+    const [originalGameSensitivity, setOriginalGameSensitivity] = useState('');
 
     useEffect(() => {
         fetchGames();
@@ -124,6 +125,28 @@ const Calculator = () => {
         } catch (error) {
             console.error('Error fetching GPT suggestion:', error);
             setError('Failed to fetch GPT suggestion. Please try again.');
+        }
+    };
+
+    const convertToOriginalGame = async () => {
+        try {
+            const response = await fetch('http://localhost:3002/convertToOriginalGame', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ newSensitivity: sens1Value, originalGameId: request.gameid }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to convert sensitivity to original game.');
+            }
+
+            const data = await response.json();
+            setOriginalGameSensitivity(data.originalGameSensitivity);
+        } catch (error) {
+            console.error('Error converting sensitivity to original game:', error);
+            setError('Failed to convert sensitivity to original game. Please try again.');
         }
     };
 
@@ -369,9 +392,14 @@ const Calculator = () => {
                             <button type="button" className="btn btn-primary mt-2" onClick={fetchGptSuggestion}>Get Suggestion</button>
                             {gptSuggestion && (
                                 <div className="gpt-suggestion mt-3">
-                                    <p ><strong>GPT Suggestion: <br /></strong> Suggested Sensitivity Value is: {sens1Value} <br /> {gptSuggestion}</p>
+                                    <p ><strong>ASK for Suggestion: <br /></strong> Suggested Sensitivity Value is: {sens1Value} <br /> {gptSuggestion}</p>
                                     <p className="text-success"><strong>Pros:</strong> {gptPros}</p>
                                     <p className="text-danger"><strong>Cons:</strong> {gptCons}</p>
+
+                                    <button className="mt-3 btn btn-primary " type="button" onClick={convertToOriginalGame}>Convert to Original Game</button>
+                                    {originalGameSensitivity && (
+                                        <p className="mt-3"><strong>Original Game Sensitivity:</strong> {originalGameSensitivity}</p>
+                                    )}
                                 </div>
                             )}
                         </div>
