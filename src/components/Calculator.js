@@ -238,7 +238,7 @@ const Calculator = () => {
     };
 
     const fetchZigzagImage = async (sensitivity) => {
-        const url = `http://localhost:3002/generateZigzag?width=200&height=150&sensitivity=${sensitivity}`;
+        const url = `http://localhost:3002/generateZigzag?width=200&height=250&sensitivity=${sensitivity}`;
 
         try {
             const response = await fetch(url);
