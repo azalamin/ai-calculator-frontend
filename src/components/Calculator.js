@@ -19,6 +19,8 @@ const Calculator = () => {
     const [gptPros, setGptPros] = useState('');
     const [gptCons, setGptCons] = useState('');
     const [originalGameSensitivity, setOriginalGameSensitivity] = useState('');
+    const [zigzagImageUrl, setZigzagImageUrl] = useState('');
+
 
     useEffect(() => {
         fetchGames();
@@ -122,6 +124,8 @@ const Calculator = () => {
             setGptPros(data.pros);
             setGptCons(data.cons);
             setSens1Value(data.newSensitivity);
+            // Fetch and set the new zigzag image URL
+            fetchZigzagImage(data.newSensitivity);
         } catch (error) {
             console.error('Error fetching GPT suggestion:', error);
             setError('Failed to fetch GPT suggestion. Please try again.');
@@ -249,8 +253,8 @@ const Calculator = () => {
             const blob = await response.blob();
             const urlCreator = window.URL || window.webkitURL;
             const imageUrl = urlCreator.createObjectURL(blob);
+            setZigzagImageUrl(imageUrl);
 
-            document.getElementById('zigzagImage').src = imageUrl;
         } catch (error) {
             console.error('Error fetching zigzag image:', error);
             setError('Failed to fetch zigzag image. Please try again.');
@@ -432,8 +436,12 @@ const Calculator = () => {
                             <button type="button" className="btn btn-primary mt-2" onClick={handleImprovementRequest}>
                                 Adjust Sensitivity
                             </button>
-                        </div> */}
+                        </div>
                         <img id="zigzagImage" alt="Zigzag Pattern" />
+                        */}
+
+                        {zigzagImageUrl && <img src={zigzagImageUrl} alt="Zigzag Pattern" />}
+
                         <input
                             type="button"
                             className="previous action-button"
