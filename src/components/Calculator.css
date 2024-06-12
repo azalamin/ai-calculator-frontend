@@ -15,7 +15,7 @@ body {
 /* Form styles */
 #msform {
 	width: 600px;
-	margin: 230px auto;
+	margin: 50px auto;
 	text-align: center;
 	position: relative;
 }
@@ -121,6 +121,7 @@ body {
 textarea[name="address"] {
 	height: 80px;
 }
+
 .robot-container {
 	position: absolute;
 	top: 100px; /* Adjust position as needed */
@@ -154,4 +155,26 @@ input[type="button"] {
 .error {
 	color: red;
 	text-align: center;
+}
+
+.navigate-container {
+	position: absolute;
+	top: 220px; /* Adjust position as needed */
+	left: 50%; /* Center horizontally */
+	transform: translateX(-50%);
+}
+
+.route-item {
+	font-size: 12px;
+	text-decoration: none;
+	color: black;
+	padding: 8px 4px;
+	text-decoration: none;
+	margin: 0 8px;
+}
+
+.route-item.active {
+	font-weight: bold;
+	color: blue; /* or any other color to indicate active state */
+	border-bottom: 2px solid blue; /* for example, to underline the active link */
 }

@@ -1,0 +1,81 @@
+.chat-container {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
+	max-width: 600px;
+	margin: auto;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	overflow: hidden;
+	position: relative;
+}
+
+.messages-container {
+	flex: 1;
+	padding: 10px;
+	overflow-y: auto;
+	background-color: #f9f9f9;
+}
+
+.message {
+	padding: 10px;
+	margin: 5px 0;
+	border-radius: 8px;
+	max-width: 75%;
+	word-wrap: break-word;
+}
+
+.message.user {
+	align-self: flex-end;
+	background-color: #d1e7ff;
+	color: #000;
+}
+
+.message.gpt {
+	align-self: flex-start;
+	background-color: #e2e2e2;
+	color: #000;
+}
+
+.input-container {
+	display: flex;
+	padding: 10px;
+	background-color: #fff;
+	border-top: 1px solid #ccc;
+	position: fixed;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 100%;
+	max-width: 600px;
+	box-sizing: border-box;
+}
+
+.input-container input {
+	flex: 1;
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 8px 0 0 8px;
+	outline: none;
+}
+
+.input-container button {
+	padding: 10px 20px;
+	border: none;
+	background-color: #007bff;
+	color: white;
+	border-radius: 0 8px 8px 0;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.input-container button:hover {
+	background-color: #0056b3;
+}
+
+.input-container button:active {
+	background-color: #004494;
+	box-shadow: 0 5px #666;
+	transform: translateY(4px);
+}
