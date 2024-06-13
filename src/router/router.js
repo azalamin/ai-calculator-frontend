@@ -10,16 +10,20 @@ import Contact from "../components/Contact";
 import Faq from "../components/Faq";
 import FinalFeedback from "../components/FinalFeedback";
 import Payment from "../components/Payment";
+import Questions from "../components/Questions";
 import Login from "../components/login.component";
 import SignUp from "../components/signup.component";
 import Social from "../components/social";
+import { UserProvider } from "../context/UserContext";
 import LayoutMain from "../layout/LayoutMain";
 import PrivateRoute from "./PrivateRoute";
 
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <LayoutMain />,
+        element: <UserProvider>
+            <LayoutMain />
+        </UserProvider>,
         children: [
             {
                 path: "login",
@@ -99,6 +103,14 @@ const router = createBrowserRouter([
                         ),
                     },
                 ],
+            },
+            {
+                path: 'questions',
+                element: (
+                    <PrivateRoute>
+                        <Questions />
+                    </PrivateRoute>
+                ),
             },
             {
                 path: "social",
