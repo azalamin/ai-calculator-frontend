@@ -1,3 +1,4 @@
+// src/router/index.js
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import Calculator from "../components/Calculator";
 import CalculateSensitivity from "../components/Calculator/CalculateSensitivity";
@@ -13,6 +14,7 @@ import Login from "../components/login.component";
 import SignUp from "../components/signup.component";
 import Social from "../components/social";
 import LayoutMain from "../layout/LayoutMain";
+import PrivateRoute from "./PrivateRoute";
 
 const router = createBrowserRouter([
     {
@@ -33,7 +35,11 @@ const router = createBrowserRouter([
             },
             {
                 path: "payment",
-                element: <Payment />,
+                element: (
+                    <PrivateRoute>
+                        <Payment />
+                    </PrivateRoute>
+                ),
             },
             {
                 path: "contact",
@@ -45,14 +51,53 @@ const router = createBrowserRouter([
             },
             {
                 path: "calculator",
-                element: <Calculator />,
+                element: (
+                    <PrivateRoute>
+                        <Calculator />
+                    </PrivateRoute>
+                ),
                 children: [
                     { path: "", element: <Navigate to="calculate-sensitivity" /> },
-                    { path: "calculate-sensitivity", element: <CalculateSensitivity /> },
-                    { path: "chat", element: <Chat /> },
-                    { path: "translate-game", element: <TranslateGame /> },
-                    { path: "convert-game", element: <ConvertGame /> },
-                    { path: "gpt-suggestion", element: <GptSuggestion /> },
+                    {
+                        path: "calculate-sensitivity",
+                        element: (
+                            <PrivateRoute>
+                                <CalculateSensitivity />
+                            </PrivateRoute>
+                        ),
+                    },
+                    {
+                        path: "chat",
+                        element: (
+                            <PrivateRoute>
+                                <Chat />
+                            </PrivateRoute>
+                        ),
+                    },
+                    {
+                        path: "translate-game",
+                        element: (
+                            <PrivateRoute>
+                                <TranslateGame />
+                            </PrivateRoute>
+                        ),
+                    },
+                    {
+                        path: "convert-game",
+                        element: (
+                            <PrivateRoute>
+                                <ConvertGame />
+                            </PrivateRoute>
+                        ),
+                    },
+                    {
+                        path: "gpt-suggestion",
+                        element: (
+                            <PrivateRoute>
+                                <GptSuggestion />
+                            </PrivateRoute>
+                        ),
+                    },
                 ],
             },
             {
