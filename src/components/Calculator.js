@@ -28,7 +28,7 @@ const Calculator = () => {
                             className={({ isActive }) => isActive ? "route-item active" : "route-item"}
                             to='/calculator/chat'
                         >
-                            Chat - Ask Me Anything
+                            Get a Suggestion
                         </NavLink>
                         <NavLink
                             className={({ isActive }) => isActive ? "route-item active" : "route-item"}

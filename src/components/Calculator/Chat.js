@@ -8,7 +8,11 @@ const Chat = () => {
     const sendMessage = async () => {
         if (input.trim() === "") return;
 
-        const userMessage = { text: input, sender: "user" };
+        const prompt = `${input}`
+
+        const userMessage = { text: prompt, sender: "user" };
+
+
         setMessages([...messages, userMessage]);
         setInput("");
 
@@ -22,6 +26,7 @@ const Chat = () => {
             const data = await response.json();
             const gptMessage = { text: data.response, sender: "gpt" };
             setMessages([...messages, userMessage, gptMessage]);
+            console.log(gptMessage)
         } catch (error) {
             console.error("Error fetching GPT response:", error);
         }
