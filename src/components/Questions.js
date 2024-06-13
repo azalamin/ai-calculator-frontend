@@ -17,15 +17,14 @@ const Questions = () => {
             const user = auth.currentUser;
             if (user) {
                 const email = user.email;
-                await axios.post('http://localhost:3001/save_user_data', { email, answers });
-                console.log('User data saved successfully');
+                await axios.post('http://localhost:3002/save_answers', { email, answers });
+                console.log('User answers saved successfully');
+                setIsNewUser(false); // Mark user as not new
+                navigate('/calculator/calculate-sensitivity'); // Redirect to calculate sensitivity route
             }
         } catch (error) {
-            console.error('Error saving user data:', error);
+            console.error('Error saving user answers:', error);
         }
-
-        setIsNewUser(false); // Mark user as not new
-        navigate('/calculator/calculate-sensitivity'); // Redirect to calculate sensitivity route
     };
 
     const handleChange = (e) => {
@@ -46,7 +45,7 @@ const Questions = () => {
     ];
 
     return (
-        <div className="auth-wrapper pt-5 pb-5 mt-5">
+        <div className="auth-wrapper pt-5 mt-5 pb-5">
             <div className="auth-inner">
                 <form onSubmit={handleSubmit}>
                     <h3>Questions</h3>

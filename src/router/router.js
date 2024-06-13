@@ -1,4 +1,3 @@
-// src/router/index.js
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import Calculator from "../components/Calculator";
 import CalculateSensitivity from "../components/Calculator/CalculateSensitivity";
@@ -16,26 +15,41 @@ import SignUp from "../components/signup.component";
 import Social from "../components/social";
 import { UserProvider } from "../context/UserContext";
 import LayoutMain from "../layout/LayoutMain";
+import PublicRoute from "../router/PublicRoute";
 import PrivateRoute from "./PrivateRoute";
 
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <UserProvider>
-            <LayoutMain />
-        </UserProvider>,
+        element: (
+            <UserProvider>
+                <LayoutMain />
+            </UserProvider>
+        ),
         children: [
             {
                 path: "login",
-                element: <Login />,
+                element: (
+                    <PublicRoute>
+                        <Login />
+                    </PublicRoute>
+                ),
             },
             {
                 path: "sign-in",
-                element: <Login />,
+                element: (
+                    <PublicRoute>
+                        <Login />
+                    </PublicRoute>
+                ),
             },
             {
                 path: "sign-up",
-                element: <SignUp />,
+                element: (
+                    <PublicRoute>
+                        <SignUp />
+                    </PublicRoute>
+                ),
             },
             {
                 path: "payment",

@@ -1,3 +1,5 @@
+// src/components/NavigationBar.js
+import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
@@ -19,7 +21,16 @@ const NavigationBar = () => {
 
     const handleLogout = async () => {
         try {
+            const email = user.email;
             await signOut(auth);
+
+            // Save logout time to database
+            await axios.post('http://localhost:3002/user_logout', {
+                email,
+                logoutTime: new Date().toISOString()
+            });
+
+            console.log('Logout successful');
             navigate('/login');
         } catch (error) {
             console.error('Error logging out:', error);
@@ -72,7 +83,6 @@ const NavigationBar = () => {
                                         Social Page
                                     </Link>
                                 </li>
-
                             </>
                         ) : (
                             <>
@@ -104,7 +114,6 @@ const NavigationBar = () => {
                             </>
                         )}
                     </ul>
-
                     {
                         user ? <div className="">
                             <button className="dropdown-item" onClick={handleLogout}>
@@ -119,3 +128,8 @@ const NavigationBar = () => {
 };
 
 export default NavigationBar;
+
+
+
+
+

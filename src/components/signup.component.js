@@ -1,5 +1,8 @@
+// src/components/SignUp.js
+import axios from 'axios';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebaseConfig';
 
 const SignUp = () => {
@@ -8,6 +11,7 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -17,9 +21,13 @@ const SignUp = () => {
       await updateProfile(user, {
         displayName: `${firstName} ${lastName}`
       });
+
+      // Save user data to database
+      await axios.post('http://localhost:3002/save_user_data', { email, firstName, lastName });
+
       console.log('Sign-up successful');
       setError('');
-      // Redirect to login or other page after successful sign-up
+      navigate('/login'); // Redirect to login or other page after successful sign-up
     } catch (err) {
       console.error('Error signing up:', err);
       setError('Sign-up failed. Please try again.');
@@ -27,11 +35,12 @@ const SignUp = () => {
   };
 
   return (
-    <div className="auth-wrapper">
+    <div className="auth-wrapper mt-5 pt-5">
       <div className="auth-inner">
         <form onSubmit={handleSignUp}>
           <h3>Sign Up</h3>
-          <div className="mb-3">            <label>First Name</label>
+          <div className="mb-3">
+            <label>First Name</label>
             <input
               type="text"
               className="form-control"
@@ -78,7 +87,7 @@ const SignUp = () => {
           {error && <p style={{ color: 'red' }}>{error}</p>}
         </form>
         <p className="forgot-password text-right">
-          Already registered <a href="/signin">sign in?</a>
+          Already registered <a href="/login">sign in?</a>
         </p>
       </div>
     </div>

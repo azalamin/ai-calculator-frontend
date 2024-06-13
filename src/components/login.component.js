@@ -1,3 +1,5 @@
+// src/components/Login.js
+import axios from 'axios';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -12,8 +14,16 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
       console.log('Login successful');
+
+      // Save login time to database
+      await axios.post('http://localhost:3002/user_login', {
+        email: user.email,
+        loginTime: new Date().toISOString()
+      });
+
       setError('');
       navigate('/'); // Redirect to home page after successful login
     } catch (err) {
@@ -23,7 +33,7 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-wrapper">
+    <div className="auth-wrapper mt-5 pt-5">
       <div className="auth-inner">
         <form onSubmit={handleLogin}>
           <h3>Sign In</h3>
