@@ -10,6 +10,7 @@ const Suggestion = () => {
         gameName: "",
         currentSensitivity: "",
         aimPreference: "",
+        gameId: ''
     });
     const [gameList, setGameList] = useState([]);
     const [filteredGames, setFilteredGames] = useState([]);
@@ -20,10 +21,13 @@ const Suggestion = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [user] = useAuthState(auth);
+    const [originalGameSensitivity, setOriginalGameSensitivity] = useState('');
 
     useEffect(() => {
         fetchGameList();
     }, []);
+
+    console.log(valorantSens)
 
     const fetchGameList = async () => {
         setLoading(true);
@@ -69,6 +73,7 @@ const Suggestion = () => {
                 return;
             }
             const gameId = selectedGame.gameid;
+            setAnswers(prevAnswers => ({ ...prevAnswers, gameId: gameId }));
 
             // Calculate sensitivity
             const response = await axios.get("http://localhost:3002/calculateToValorantValue", {
@@ -79,7 +84,7 @@ const Suggestion = () => {
             });
 
             const valorantSensitivity = response.data[0]?.sens1;
-            setValorantSens(valorantSens)
+            setValorantSens(valorantSensitivity)
             console.log(valorantSensitivity)
 
             // Determine the digit based on aim preference
@@ -155,6 +160,28 @@ const Suggestion = () => {
             setError("Failed to translate game data. Please try again.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const convertToOriginalGame = async () => {
+        try {
+            const response = await fetch('http://localhost:3002/convertToOriginalGame', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ newSensitivity: valorantSens, originalGameId: answers.gameId }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to convert sensitivity to original game.');
+            }
+
+            const data = await response.json();
+            setOriginalGameSensitivity(data.originalGameSensitivity);
+        } catch (error) {
+            console.error('Error converting sensitivity to original game:', error);
+            setError('Failed to convert sensitivity to original game. Please try again.');
         }
     };
 
@@ -282,6 +309,20 @@ const Suggestion = () => {
             ) : (
                 <form id='msform'>{renderStep()}</form>
             )}
+            {answers?.currentSensitivity && (
+                <div className='mt-3' style={{ color: "red" }}>
+                    <h3>Current Sensitivity</h3>
+                    <p>{answers?.currentSensitivity}</p>
+                </div>
+            )}
+
+            {valorantSens && (
+                <div className='mt-3' style={{ color: "green" }}>
+                    <h3>Suggested Sensitivity</h3>
+                    <p>{valorantSens}</p>
+                </div>
+            )}
+
             {pros && (
                 <div className='mt-3' style={{ color: "green" }}>
                     <h3>Pros</h3>
@@ -292,6 +333,14 @@ const Suggestion = () => {
                 <div className='mt-3' style={{ color: "red" }}>
                     <h3>Cons</h3>
                     <p>{cons}</p>
+                </div>
+            )}
+            {valorantSens && (
+                <div className='mt-3 d-flex justify-content-center flex-column' style={{ color: "green" }}>
+                    <button className="mt-3 btn btn-primary" type="button" onClick={convertToOriginalGame}>Convert to Original Game</button>
+                    {originalGameSensitivity && (
+                        <p className="mt-3"><strong>Original Game Sensitivity:</strong> {originalGameSensitivity}</p>
+                    )}
                 </div>
             )}
             {error && <p style={{ color: "red" }}>{error}</p>}
