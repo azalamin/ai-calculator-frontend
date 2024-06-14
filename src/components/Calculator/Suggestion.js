@@ -1,172 +1,101 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { useAuthState } from "react-firebase-hooks/auth";
-import ClipLoader from "react-spinners/ClipLoader";
-import { auth } from "../../firebaseConfig";
+import React, { useEffect, useState } from 'react';
+import '../Calculator.css';
 
-const Suggestion = () => {
+const CalculateSensitivity = () => {
+    const [answer, setAnswer] = useState('');
+    const [error, setError] = useState('');
     const [step, setStep] = useState(1);
-    const [answers, setAnswers] = useState({
-        gameName: "",
-        currentSensitivity: "",
-        aimPreference: "",
-        suggestionInput: "",
-        gameId: ""
-    });
-    const [gameList, setGameList] = useState([]);
-    const [filteredGames, setFilteredGames] = useState([]);
-    const [valorantSens, setValorantSens] = useState('');
-    const [pros, setPros] = useState("");
-    const [cons, setCons] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [user] = useAuthState(auth);
+    const [games, setGames] = useState({});
+    const [GameList, setGameList] = useState([]);
+    const [request, setRequest] = useState({});
+    const [sens1Value, setSens1Value] = useState(null);
+    const [aimPreference, setAimPreference] = useState('');
+    const [sensitivityFeedback, setSensitivityFeedback] = useState('');
+    const [currentSensitivity, setCurrentSensitivity] = useState('');
+    const [gptSuggestion, setGptSuggestion] = useState('');
+    const [userQuery, setUserQuery] = useState('');
+    const [gptPros, setGptPros] = useState('');
+    const [gptCons, setGptCons] = useState('');
     const [originalGameSensitivity, setOriginalGameSensitivity] = useState('');
 
+
     useEffect(() => {
-        fetchGameList();
+        fetchGames();
     }, []);
 
-    const suggestionOptions = [
-        "Neutral/flat grip for balance",
-        "Fastest General Aim and Reaction Times",
-        "Balanced control and precision",
-        "Best mouse control",
-        "Great for flick aim and spray transfers",
-        "Best all-round aim",
-        "Highest first shot accuracy and tracking",
-        "Stable focus, good for movement and rhythm",
-        "Pencil aim",
-        "Largest field of aim"
-    ];
-
-    const fetchGameList = async () => {
-        setLoading(true);
+    const fetchGames = async () => {
         try {
-            const response = await axios.get("http://localhost:3002/fetchGameList");
-            setGameList(response.data);
-            setFilteredGames(response.data);
-        } catch (err) {
-            console.error("Error fetching game list:", err);
-            setError("Failed to fetch game list. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleInputChange = event => {
-        const { name, value } = event.target;
-        setAnswers(prevAnswers => ({ ...prevAnswers, [name]: value }));
-        if (name === "gameName") {
-            const filtered = gameList.filter(game =>
-                game.game.toLowerCase().includes(value.toLowerCase())
-            );
-            setFilteredGames(filtered);
-        }
-    };
-
-    const handleNextStep = () => {
-        setStep(step + 1);
-    };
-
-    const handlePrevStep = () => {
-        setStep(step - 1);
-    };
-
-    const handleSuggestion = async () => {
-        setLoading(true);
-        try {
-            // Find game ID
-            const selectedGame = gameList.find(game => game.game.toLowerCase() === answers.gameName.toLowerCase());
-            if (!selectedGame) {
-                setError("Invalid game name.");
-                setLoading(false);
-                return;
+            const response = await fetch('http://localhost:3002/fetchGameNames?gameName=random');
+            if (!response.ok) {
+                throw new Error('Failed to fetch games.');
             }
-            const gameId = selectedGame.gameid;
-            setAnswers(prevAnswers => ({ ...prevAnswers, gameId: gameId }));
+            const data = await response.json();
+            setGames(data);
+            const stringArray = Object.values(data).map((game) => game.game);
+            setGameList(stringArray);
+        } catch (error) {
+            console.error('Error fetching games:', error);
+            setError('Failed to fetch games. Please try again.');
+        }
+    };
 
-            // Calculate sensitivity
-            const response = await axios.get("http://localhost:3002/calculateToValorantValue", {
-                params: {
-                    gameid1: gameId,
-                    sens1: answers.currentSensitivity,
+
+
+    const handleInputChange = (event) => {
+        setAnswer(event.target.value);
+    };
+
+
+    const handleUserQueryChange = (event) => {
+        setUserQuery(event.target.value);
+    };
+
+
+    const verifyGame = () => {
+        const foundGame = Object.values(games).find((game) => game.game === answer);
+        if (!foundGame) {
+            setError('Invalid game name! Please enter a valid game name.');
+            return false;
+        }
+        setRequest(foundGame);
+        setError('');
+        return true;
+    };
+
+    const verifyRange = () => {
+        const sens1min = 0.01;
+        const sens1max = 100;
+        if (answer < sens1min || answer > sens1max) {
+            setError(`Invalid sensitivity range. Valid values are ${sens1min} to ${sens1max}`);
+            return false;
+        }
+        setError('');
+        return true;
+    };
+
+    const fetchGptSuggestion = async () => {
+        try {
+            const response = await fetch('http://localhost:3002/gptSuggestion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({ query: userQuery, aimPreference, currentSensitivity: sens1Value }),
             });
 
-            const valorantSensitivity = response.data[0]?.sens1;
-            setValorantSens(valorantSensitivity);
-
-            // Determine the digit based on aim preference
-            const sensitivityDigits = valorantSensitivity.split('.')[1];
-            let digit = null;
-            if (answers.aimPreference === 'arm') {
-                digit = sensitivityDigits[0];
-            } else if (answers.aimPreference === 'wrist') {
-                digit = sensitivityDigits[1];
-            } else if (answers.aimPreference === 'fingers') {
-                digit = sensitivityDigits[2];
+            if (!response.ok) {
+                throw new Error('Failed to fetch GPT suggestion.');
             }
 
-            // Prepare GPT prompt
-            const gptPrompt = `
-                Based on the given aim preference and Valorant sensitivity, select the corresponding pros and cons:
-
-                Game Data:
-                - Game: ${answers.gameName}
-                - Valorant Sensitivity: ${valorantSensitivity}
-                - Aim Preference: ${answers.aimPreference}
-                - Selected Digit: ${digit}
-
-                Sensitivity Settings Analysis:
-                0. Neutral/flat grip for balance
-                   Pros: The aiming preference you selected may be your "anchor point". You can either select a new aiming preference or senstailor will tailor a new sensitivity based on your current aiming preference. 
-                1. Fastest General Aim and Reaction Times
-                   Pros: This sensitivity will have the fastest general aim and fastest reaction times as well as fastest precision.
-                   Cons: This sensitivity will be bad for tracking and you may under shoot at times. It also will be biased to left hand side targets/shots and weaker at hitting right hand side targets/shots.
-                2. Balanced control and precision
-                   Pros: This sensitivity will have a balance between control, highest precision and even target selection on left and right.
-                   Cons: This sensitivity has a low "range"/"field of aim" so it will undershoot and struggle with tracking.
-                3. Best mouse control
-                   Pros: This sensitivity will have the best mouse control. You will feel a strong grip and be able to to make high accuracy adjustments and 180s.
-                   Cons: This sensitivity will be bad for tracking and will undershoot. It also will be biased to left hand side targets/shots and weaker at hitting right hand side targets/shots.
-                4. Great for flick aim and spray transfers
-                   Pros: This sensitivity is great for flick aim and spray transfers.
-                   Cons: This sensitivity will look shaky and can be very inconsistent. 
-                5. Best all-round aim
-                   Pros: This sensitivity has the best all round aim. It's the most consistent for tracking, flicking and precision aim. It also have even target selection on left and right.
-                   Cons: This sensitivity has a very high skill ceiling to master and get desired effects. It can look very shaky.
-                6. Highest first shot accuracy and tracking
-                   Pros: This sensitivity will have the highest first shot accuracy and tracking.
-                   Cons: This sensitivity will feel extremely shaky and inconsistent. 
-                7. Stable focus, good for movement and rhythm
-                   Pros: The sensitivity has great focus/looks stable and is great for movement and rhythm based aiming. It also has a range/"field of aim" 
-                   Cons: This sensitivity may cause you to overshoot. 
-                8. Pencil aim
-                   Pros: The sensitivity will have "pencil aim". It's amazing for prefiring, adjustments, tracking, flicking and has very high mouse control. It also has even target selection on left and right.
-                   Cons: This sensitivity will cause you to overshoot. It can feel very shaky and inconsistent and the movement can be sloppy at times.
-                9. Largest field of aim
-                   Pros: This sensitivity will has the largest field of aim. It's very fast for adjustments and reaction time. It can also be great for movement and pre firing.
-                   Cons: This sensitivity will be bad for micro adjustments/precision. At times it will feel inconsistent and shaky and overshoot a lot. 
-
-                Based on the selected digit (${digit}), provide the corresponding pros and cons.
-            `;
-
-            const gptResponse = await axios.post("http://localhost:3002/translate_game", { prompt: gptPrompt });
-
-            const data = gptResponse.data.translatedData;
-            const prosMatch = data.match(/Pros:(.*)Cons:/s);
-            const consMatch = data.match(/Cons:(.*)/s);
-
-            if (prosMatch) setPros(prosMatch[1].trim());
-            if (consMatch) setCons(consMatch[1].trim());
-
-            setError("");
-        } catch (err) {
-            console.error("Error translating game data:", err);
-            setError("Failed to translate game data. Please try again.");
-        } finally {
-            setLoading(false);
+            const data = await response.json();
+            setGptSuggestion(data.suggestion);
+            setGptPros(data.pros);
+            setGptCons(data.cons);
+            convertToOriginalGame();
+            setSens1Value(data.newSensitivity);
+        } catch (error) {
+            console.error('Error fetching GPT suggestion:', error);
+            setError('Failed to fetch GPT suggestion. Please try again.');
         }
     };
 
@@ -177,7 +106,7 @@ const Suggestion = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ newSensitivity: valorantSens, originalGameId: answers.gameId }),
+                body: JSON.stringify({ newSensitivity: sens1Value, originalGameId: request.gameid }),
             });
 
             if (!response.ok) {
@@ -192,138 +121,200 @@ const Suggestion = () => {
         }
     };
 
-    const renderStep = () => {
-        switch (step) {
+
+    const calculateValue = async () => {
+        const { gameid } = request;
+        const sens1 = answer;
+        const url = `http://localhost:3002/calculateValue?gameid1=${gameid}&sens1=${sens1}&gameid2=2347`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Failed to calculate value.');
+            }
+
+            const data = await response.json();
+            console.log(data[0]?.sens1);
+            setSens1Value(data[0]?.sens1);
+        } catch (error) {
+            console.error('Error calculating value:', error);
+            setError('Failed to calculate value. Please try again.');
+        }
+    };
+
+    const fetchSensitivityFeedback = async (calculatedSens) => {
+        try {
+            const response = await fetch('http://localhost:3002/convertSensitivity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ calculatedSens: Number(calculatedSens), aimPreference, dpi: 800 }), // Use calculatedSens as a number
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch sensitivity feedback.');
+            }
+
+            const data = await response.json();
+            setSensitivityFeedback(data.feedback);
+        } catch (error) {
+            console.error('Error fetching sensitivity feedback:', error);
+            setError('Failed to fetch sensitivity feedback. Please try again.');
+        }
+    };
+
+    const handleQuestionThree = (preference) => {
+        setAimPreference(preference);
+        fetchSensitivityFeedback(sens1Value); // Fetch sensitivity feedback using calculated sensitivity
+        nextStep();
+    };
+
+    const clearInput = () => {
+        setAnswer('');
+    };
+
+    const nextStep = () => {
+        setStep((prevStep) => prevStep + 1);
+    };
+
+    const prevStep = () => {
+        setStep((prevStep) => prevStep - 1);
+    };
+
+    const renderStep = (currentStep) => {
+        switch (currentStep) {
             case 1:
                 return (
                     <fieldset>
-                        <h3 className='fs-subtitle'>Question # 1</h3>
-                        <h2 className='fs-title'>What is your current game name?</h2>
+                        <h3 className="fs-subtitle">Question # 1</h3>
+                        <h2 className="fs-title">What game are you playing?</h2>
                         <input
-                            type='text'
-                            name='gameName'
-                            placeholder='Enter the game name'
-                            value={answers.gameName}
+                            type="text"
+                            name="answer"
+                            placeholder="Write your answer here!!"
+                            value={answer}
                             onChange={handleInputChange}
-                            list="gameSuggestions"
+                            list="suggestion"
                         />
-                        <datalist id="gameSuggestions">
-                            {filteredGames.map((game, index) => (
-                                <option key={index} value={game.game} />
+                        <datalist id="suggestion">
+                            {GameList.map((game, index) => (
+                                <option key={index} value={game} />
                             ))}
                         </datalist>
                         <input
-                            type='button'
-                            className='next action-button'
-                            value='Next'
-                            onClick={handleNextStep}
+                            type="button"
+                            className="next action-button"
+                            value="Next"
+                            onClick={() => {
+                                const isValid = verifyGame();
+                                if (isValid) {
+                                    clearInput();
+                                    nextStep();
+                                }
+                            }}
                         />
+                        {error && <p className="error">{error}</p>}
                     </fieldset>
                 );
             case 2:
                 return (
                     <fieldset>
-                        <h3 className='fs-subtitle'>Question # 2</h3>
-                        <h2 className='fs-title'>What is your current sensitivity?</h2>
+                        <h3 className="fs-subtitle">Question # 2</h3>
+                        <h2 className="fs-title">What is your current sensitivity?</h2>
                         <input
-                            type='text'
-                            name='currentSensitivity'
-                            placeholder='Enter the current sensitivity'
-                            value={answers.currentSensitivity}
+                            type="number"
+                            name="answer"
+                            placeholder="Write your answer here!!"
+                            value={answer}
                             onChange={handleInputChange}
                         />
                         <input
-                            type='button'
-                            className='previous action-button'
-                            value='Previous'
-                            onClick={handlePrevStep}
+                            type="button"
+                            className="previous action-button"
+                            value="Previous"
+                            onClick={() => {
+                                prevStep();
+                                clearInput();
+                            }}
                         />
                         <input
-                            type='button'
-                            className='next action-button'
-                            value='Next'
-                            onClick={handleNextStep}
+                            type="button"
+                            className="next action-button"
+                            value="Next"
+                            onClick={() => {
+                                const isValid = verifyRange();
+                                if (isValid) {
+                                    setCurrentSensitivity(answer); // Set the current sensitivity value
+                                    calculateValue();
+                                    clearInput();
+                                    nextStep();
+                                }
+                            }}
                         />
+                        {error && <p className="error">{error}</p>}
                     </fieldset>
                 );
             case 3:
                 return (
                     <fieldset>
-                        <h3 className='fs-subtitle'>Question # 3</h3>
-                        <h2 className='fs-title'>What is your aim preference?</h2>
+                        <h3 className="fs-subtitle">Question # 3</h3>
+                        <h2 className="fs-title">Do you prefer aiming with your arm, wrist, or fingers?</h2>
                         <label>
-                            <input
-                                type='radio'
-                                name='aimPreference'
-                                value='arm'
-                                checked={answers.aimPreference === "arm"}
-                                onChange={handleInputChange}
-                            />{" "}
-                            Arm
+                            <input type="radio" name="aimPreference" value="arm" onClick={() => setAimPreference('arm')} /> Arm
                         </label>
                         <label>
-                            <input
-                                type='radio'
-                                name='aimPreference'
-                                value='wrist'
-                                checked={answers.aimPreference === "wrist"}
-                                onChange={handleInputChange}
-                            />{" "}
-                            Wrist
+                            <input type="radio" name="aimPreference" value="wrist" onClick={() => setAimPreference('wrist')} /> Wrist
                         </label>
                         <label>
-                            <input
-                                type='radio'
-                                name='aimPreference'
-                                value='fingers'
-                                checked={answers.aimPreference === "fingers"}
-                                onChange={handleInputChange}
-                            />{" "}
-                            Fingers
+                            <input type="radio" name="aimPreference" value="finger" onClick={() => setAimPreference('finger')} /> Finger
                         </label>
                         <input
-                            type='button'
-                            className='previous action-button'
-                            value='Previous'
-                            onClick={handlePrevStep}
+                            type="button"
+                            className="previous action-button"
+                            value="Previous"
+                            onClick={() => {
+                                prevStep();
+                                clearInput();
+                            }}
                         />
                         <input
-                            type='button'
-                            className='next action-button'
-                            value='Next'
-                            onClick={handleNextStep}
+                            type="button"
+                            className="next action-button"
+                            value="Next"
+                            onClick={() => handleQuestionThree(aimPreference)}
                         />
                     </fieldset>
                 );
             case 4:
                 return (
                     <fieldset>
-                        <h3 className='fs-subtitle'>Question # 4</h3>
-                        <h2 className='fs-title'>What kind of suggestion are you looking for?</h2>
+                        <p>Current Sensitivity: {currentSensitivity}</p>
+
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Ask me for suggestions"
+                                value={userQuery}
+                                onChange={handleUserQueryChange}
+                            />
+                            <button type="button" className="btn btn-primary mt-2" onClick={fetchGptSuggestion}>Get Suggestion</button>
+                            {gptSuggestion && (
+                                <div className="gpt-suggestion mt-3">
+                                    <p ><strong>Suggested Sensitivity Value is: </strong> {sens1Value}</p>
+                                    <p><strong>Original Game Sensitivity:</strong> {originalGameSensitivity}</p>
+                                    <p ><strong>Suggestion:</strong> {gptSuggestion}</p>
+                                    <p className="text-success"><strong>Pros:</strong> {gptPros}</p>
+                                    <p className="text-danger"><strong>Cons:</strong> {gptCons}</p>
+                                </div>
+                            )}
+                        </div>
+
                         <input
-                            type='text'
-                            name='suggestionInput'
-                            placeholder='Type to get suggestions'
-                            value={answers.suggestionInput}
-                            onChange={handleInputChange}
-                            list="suggestionOptions"
-                        />
-                        <datalist id="suggestionOptions">
-                            {suggestionOptions.map((option, index) => (
-                                <option key={index} value={option} />
-                            ))}
-                        </datalist>
-                        <input
-                            type='button'
-                            className='previous action-button'
-                            value='Previous'
-                            onClick={handlePrevStep}
-                        />
-                        <input
-                            type='button'
-                            className='next action-button'
-                            value='Suggest Me'
-                            onClick={handleSuggestion}
+                            type="button"
+                            className="previous action-button"
+                            value="Previous"
+                            onClick={prevStep}
                         />
                     </fieldset>
                 );
@@ -332,59 +323,17 @@ const Suggestion = () => {
         }
     };
 
+
+
+
     return (
-        <div className='auth-wrapper'>
-            {loading ? (
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        height: "100vh",
-                    }}
-                >
-                    <ClipLoader size={50} color={"#123abc"} loading={true} />
-                </div>
-            ) : (
-                <form id='msform'>{renderStep()}</form>
-            )}
-            {answers?.currentSensitivity && (
-                <div className='mt-3' style={{ color: "red" }}>
-                    <h3>Current Sensitivity</h3>
-                    <p>{answers?.currentSensitivity}</p>
-                </div>
-            )}
 
-            {valorantSens && (
-                <div className='mt-3' style={{ color: "green" }}>
-                    <h3>Suggested Sensitivity</h3>
-                    <p>{valorantSens}</p>
-                </div>
-            )}
+        <form id="msform" className="pb-5">
+            {renderStep(step)}
+        </form>
 
-            {pros && (
-                <div className='mt-3' style={{ color: "green" }}>
-                    <h3>Pros</h3>
-                    <p>{pros}</p>
-                </div>
-            )}
-            {cons && (
-                <div className='mt-3' style={{ color: "red" }}>
-                    <h3>Cons</h3>
-                    <p>{cons}</p>
-                </div>
-            )}
-            {valorantSens && (
-                <div className='mt-3 d-flex justify-content-center flex-column' style={{ color: "green" }}>
-                    <button className="mt-3 btn btn-primary" type="button" onClick={convertToOriginalGame}>Convert to Original Game</button>
-                    {originalGameSensitivity && (
-                        <p className="mt-3"><strong>Original Game Sensitivity:</strong> {originalGameSensitivity}</p>
-                    )}
-                </div>
-            )}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-        </div>
+
     );
 };
 
-export default Suggestion;
+export default CalculateSensitivity;
