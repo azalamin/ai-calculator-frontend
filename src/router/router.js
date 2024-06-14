@@ -1,9 +1,9 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import Calculator from "../components/Calculator";
 import CalculateSensitivity from "../components/Calculator/CalculateSensitivity";
-import Chat from "../components/Calculator/Chat";
 import ConvertGame from "../components/Calculator/ConvertGame";
 import GptSuggestion from "../components/Calculator/GptSuggestion";
+import Suggestion from "../components/Calculator/Suggestion";
 import TranslateGame from "../components/Calculator/TranslateGame";
 import Contact from "../components/Contact";
 import Faq from "../components/Faq";
@@ -88,7 +88,7 @@ const router = createBrowserRouter([
                         path: "chat",
                         element: (
                             <PrivateRoute>
-                                <Chat />
+                                <Suggestion />
                             </PrivateRoute>
                         ),
                     },

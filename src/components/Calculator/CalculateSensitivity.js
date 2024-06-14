@@ -235,9 +235,6 @@ const CalculateSensitivity = () => {
         }
     };
 
-
-
-
     useEffect(() => {
         if (step === 4) {
             fetchZigzagImage(sens1Value);
