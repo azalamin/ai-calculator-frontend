@@ -10,9 +10,11 @@ const TranslateGame = () => {
         gameName: "",
         currentSensitivity: "",
         aimPreference: "",
-        context: "",
     });
-    const [explanation, setExplanation] = useState("");
+    const [gameList, setGameList] = useState([]);
+    const [filteredGames, setFilteredGames] = useState([]);
+    const [valorantSens, setValorantSens] = useState('');
+
     const [pros, setPros] = useState("");
     const [cons, setCons] = useState("");
     const [error, setError] = useState("");
@@ -20,40 +22,32 @@ const TranslateGame = () => {
     const [user] = useAuthState(auth);
 
     useEffect(() => {
-        if (user) {
-            fetchUserAnswers(user.email);
-        }
-    }, [user]);
+        fetchGameList();
+    }, []);
 
-    const fetchUserAnswers = async (email) => {
-        console.log("Sending request to fetch answers for:", email); // Debug log
+    const fetchGameList = async () => {
         setLoading(true);
         try {
-            const response = await axios.post("http://localhost:3002/get_user_answers", { email });
-            if (response.data.answers) {
-                console.log("Answers fetched:", response.data.answers); // Debug log
-                const answers = response.data.answers;
-                setAnswers({
-                    gameName: answers.game,
-                    currentSensitivity: answers.currentSensitivity,
-                    aimPreference: answers.aimPreference,
-                    context: "",
-                });
-            } else {
-                console.log("No answers found for the user"); // Debug log
-                setError("No answers found for the user.");
-            }
+            const response = await axios.get("http://localhost:3002/fetchGameList");
+            setGameList(response.data);
+            setFilteredGames(response.data);
         } catch (err) {
-            console.error("Error fetching user answers:", err);
-            setError("Failed to fetch user answers. Please try again.");
+            console.error("Error fetching game list:", err);
+            setError("Failed to fetch game list. Please try again.");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleInputChange = (event) => {
+    const handleInputChange = event => {
         const { name, value } = event.target;
-        setAnswers({ ...answers, [name]: value });
+        setAnswers(prevAnswers => ({ ...prevAnswers, [name]: value }));
+        if (name === "gameName") {
+            const filtered = gameList.filter(game =>
+                game.game.toLowerCase().includes(value.toLowerCase())
+            );
+            setFilteredGames(filtered);
+        }
     };
 
     const handleNextStep = () => {
@@ -67,71 +61,106 @@ const TranslateGame = () => {
     const handleTranslate = async () => {
         setLoading(true);
         try {
-            const prompt = `
-            Please explain the following game data first, and then provide the pros and cons of the current sensitivity settings.
+            // Find game ID
+            const selectedGame = gameList.find(game => game.game.toLowerCase() === answers.gameName.toLowerCase());
+            if (!selectedGame) {
+                setError("Invalid game name.");
+                setLoading(false);
+                return;
+            }
+            const gameId = selectedGame.gameid;
 
-            Game Data:
-            - Game: ${answers.gameName}
-            - Current Sensitivity: ${answers.currentSensitivity}
-            - Aim Preference: ${answers.aimPreference}
-            - Context: ${answers.context}
+            // Calculate sensitivity
+            const response = await axios.get("http://localhost:3002/calculateToValorantValue", {
+                params: {
+                    gameid1: gameId,
+                    sens1: answers.currentSensitivity,
+                },
+            });
 
-            Explanation:
-            Please explain the meaning of the game data provided above in 2-3 lines.
+            const valorantSensitivity = response.data[0]?.sens1;
+            setValorantSens(valorantSens)
+            console.log(valorantSensitivity)
 
-            Pros and Cons Analysis:
-            Below are different sensitivity settings. Choose one set of pros and cons and provide them separately as "Pros" and "Cons".
+            // Prepare GPT prompt
+            const gptPrompt = `
+                Choose the correct pros and cons provide it based on aim preference with the current sensitivity settings.
 
-            0. Neutral/flat grip for balance
-               The aiming preference you selected may be your "anchor point". You can either select a new aiming preference or senstailor will tailor a new sensitivity based on your current aiming preference. 
+                Game Data:
+                - Game: ${answers.gameName}
+                - Valorant Sensitivity: ${valorantSensitivity}
+                - Aim Preference: ${answers.aimPreference}
 
-            1. Fastest General Aim and Reaction Times
-               - Pros: Fastest general aim, fastest reaction times, fastest precision.
-               - Cons: Bad for tracking, may undershoot, biased to left-hand targets, weaker at right-hand targets.
+                Here, aim preference has a setting, valorant sensitivity has value like this 0.932, after the decimal, first value is 9 right? so, here 9 is arm, then 3 right? 3 is wrist, then 2 right? 2 is finger.
 
-            2. Balanced control and precision
-               - Pros: Balanced control, high precision, even target selection.
-               - Cons: Low field of aim, may undershoot, struggles with tracking.
+                Sensitivity Breakdown:
+                After the decimal:
+                First Value: Arm
+                Second Value: Wrist
+                Third Value: Finger
 
-            3. Best mouse control
-               - Pros: Strong grip, high accuracy adjustments, good for 180s.
-               - Cons: Bad for tracking, may undershoot, biased to left-hand targets, weaker at right-hand targets.
+                Example Explanation:
+                For a sensitivity setting of 0.932:
+                First Value (9) = Arm
+                Second Value (3) = Wrist
+                Third Value (2) = Finger
 
-            4. Great for flick aim and spray transfers
-               - Pros: Excellent for flick aim and spray transfers.
-               - Cons: Can be shaky, inconsistent.
+                Every pros and cons has its base number 0 to 9, If user choose arm then it will be the first digit after decimal, the first digit has it value right? Let's say the first digit is 9, then it will choose the number 9 pros and cons. This is how it should work.
 
-            5. Best all-round aim
-               - Pros: Consistent for tracking, flicking, precision aim, even target selection.
-               - Cons: High skill ceiling, can look shaky.
+                Sensitivity Settings Analysis:
+                Select a value from 0 to 9 based on user preference. Each value has specific pros and cons as outlined below:
 
-            6. Highest first shot accuracy and tracking
-               - Pros: Great first shot accuracy, good for tracking.
-               - Cons: Feels shaky and inconsistent.
+                0.
+                The aiming preference you selected may be your "anchor point". You can either select a new aiming preference or senstailor will tailor a new sensitivity based on your current aiming preference. 
 
-            7. Stable focus, good for movement and rhythm
-               - Pros: Stable, good for movement and rhythm-based aiming, good field of aim.
-               - Cons: May cause overshooting.
+                1.
+                - Pros: Fastest general aim, fastest reaction times, fastest precision.
+                - Cons: Bad for tracking, may undershoot, biased to left-hand targets, weaker at right-hand targets.
 
-            8. Pencil aim
-               - Pros: Excellent for prefiring, adjustments, tracking, flicking, high mouse control, even target selection.
-               - Cons: May overshoot, can be shaky and inconsistent, movement can be sloppy.
+                2.
+                - Pros: Balanced control, high precision, even target selection.
+                - Cons: Low field of aim, may undershoot, struggles with tracking.
 
-            9. Largest field of aim
-               - Pros: Very fast adjustments, quick reaction time, good for movement and prefiring.
-               - Cons: Bad for micro-adjustments, can feel inconsistent and shaky, may overshoot.
+                3.
+                - Pros: Strong grip, high accuracy adjustments, good for 180s.
+                - Cons: Bad for tracking, may undershoot, biased to left-hand targets, weaker at right-hand targets.
 
-            Please provide the explanation first, and then choose one set of pros and cons from the list above and provide them separately as "Pros" & "Cons".
+                4.
+                - Pros: Excellent for flick aim and spray transfers.
+                - Cons: Can be shaky, inconsistent.
+
+                5.
+                - Pros: Consistent for tracking, flicking, precision aim, even target selection.
+                - Cons: High skill ceiling, can look shaky.
+
+                6.
+                - Pros: Great first shot accuracy, good for tracking.
+                - Cons: Feels shaky and inconsistent.
+
+                7.
+                - Pros: Stable, good for movement and rhythm-based aiming, good field of aim.
+                - Cons: May cause overshooting.
+
+                8.
+                - Pros: Excellent for prefiring, adjustments, tracking, flicking, high mouse control, even target selection.
+                - Cons: May overshoot, can be shaky and inconsistent, movement can be sloppy.
+
+                9.
+                - Pros: Very fast adjustments, quick reaction time, good for movement and prefiring.
+                - Cons: Bad for micro-adjustments, can feel inconsistent and shaky, may overshoot.
+
+
+                Choose the correct pros and cons based on aim preference. Do not modify the text. Just give me the pros and cons
             `;
 
-            const response = await axios.post("http://localhost:3002/translate_game", { prompt });
-            const data = response.data.translatedData;
+            const gptResponse = await axios.post("http://localhost:3002/translate_game", { prompt: gptPrompt });
 
-            const explanationMatch = data.match(/Explanation:(.*)Pros and Cons Analysis:/s);
+            const data = gptResponse.data.translatedData;
             const prosMatch = data.match(/Pros:(.*)Cons:/s);
             const consMatch = data.match(/Cons:(.*)/s);
 
-            if (explanationMatch) setExplanation(explanationMatch[1].trim());
+            console.log(gptResponse.data.translatedData)
+
             if (prosMatch) setPros(prosMatch[1].trim());
             if (consMatch) setCons(consMatch[1].trim());
 
@@ -157,7 +186,13 @@ const TranslateGame = () => {
                             placeholder='Enter the game name'
                             value={answers.gameName}
                             onChange={handleInputChange}
+                            list="gameSuggestions"
                         />
+                        <datalist id="gameSuggestions">
+                            {filteredGames.map((game, index) => (
+                                <option key={index} value={game.game} />
+                            ))}
+                        </datalist>
                         <input
                             type='button'
                             className='next action-button'
@@ -236,45 +271,6 @@ const TranslateGame = () => {
                         <input
                             type='button'
                             className='next action-button'
-                            value='Next'
-                            onClick={handleNextStep}
-                        />
-                    </fieldset>
-                );
-            case 4:
-                return (
-                    <fieldset>
-                        <h3 className='fs-subtitle'>Question # 4</h3>
-                        <h2 className='fs-title'>Provide any additional context for the game</h2>
-                        <input
-                            type='text'
-                            name='context'
-                            placeholder='Enter additional context'
-                            list='contextSuggestions'
-                            value={answers.context}
-                            onChange={handleInputChange}
-                        />
-                        <datalist id='contextSuggestions'>
-                            <option value='Neutral/flat grip for balance' />
-                            <option value='Fastest General Aim and Reaction Times' />
-                            <option value='Balanced control and precision' />
-                            <option value='Best mouse control' />
-                            <option value='Great for flick aim and spray transfers' />
-                            <option value='Best all-round aim' />
-                            <option value='Highest first shot accuracy and tracking' />
-                            <option value='Stable focus, good for movement and rhythm' />
-                            <option value='Pencil aim' />
-                            <option value='Largest field of aim' />
-                        </datalist>
-                        <input
-                            type='button'
-                            className='previous action-button'
-                            value='Previous'
-                            onClick={handlePrevStep}
-                        />
-                        <input
-                            type='button'
-                            className='next action-button'
                             value='Submit'
                             onClick={handleTranslate}
                         />
@@ -301,10 +297,10 @@ const TranslateGame = () => {
             ) : (
                 <form id='msform'>{renderStep()}</form>
             )}
-            {explanation && (
-                <div className='mt-3' style={{ color: "blue" }}>
-                    <h3>Explanation</h3>
-                    <p>{explanation}</p>
+            {valorantSens && (
+                <div className='mt-3' style={{ color: "green" }}>
+                    <h3>Sensitivity</h3>
+                    <p>{valorantSens}</p>
                 </div>
             )}
             {pros && (

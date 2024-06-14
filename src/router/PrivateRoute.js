@@ -17,9 +17,7 @@ const PrivateRoute = ({ children }) => {
         const checkAnswers = async () => {
             if (user) {
                 try {
-                    console.log('Checking answers for user:', user.email); // Debug log
                     const response = await axios.post('http://localhost:3002/check_user', { email: user.email });
-                    console.log('Response from check_user:', response.data); // Debug log
                     if (response.data.message === 'User has answered the questions') {
                         setIsNewUser(false);
                     } else {
