@@ -82,76 +82,61 @@ const TranslateGame = () => {
             setValorantSens(valorantSens)
             console.log(valorantSensitivity)
 
+            // Determine the digit based on aim preference
+            const sensitivityDigits = valorantSensitivity.split('.')[1];
+            let digit = null;
+            if (answers.aimPreference === 'arm') {
+                digit = sensitivityDigits[0];
+            } else if (answers.aimPreference === 'wrist') {
+                digit = sensitivityDigits[1];
+            } else if (answers.aimPreference === 'fingers') {
+                digit = sensitivityDigits[2];
+            }
+
             // Prepare GPT prompt
             const gptPrompt = `
-                Choose the correct pros and cons provide it based on aim preference with the current sensitivity settings.
+                Based on the given aim preference and Valorant sensitivity, select the corresponding pros and cons:
 
                 Game Data:
                 - Game: ${answers.gameName}
                 - Valorant Sensitivity: ${valorantSensitivity}
                 - Aim Preference: ${answers.aimPreference}
-
-                Here, aim preference has a setting, valorant sensitivity has value like this 0.932, after the decimal, first value is 9 right? so, here 9 is arm, then 3 right? 3 is wrist, then 2 right? 2 is finger.
-
-                Sensitivity Breakdown:
-                After the decimal:
-                First Value: Arm
-                Second Value: Wrist
-                Third Value: Finger
-
-                Example Explanation:
-                For a sensitivity setting of 0.932:
-                First Value (9) = Arm
-                Second Value (3) = Wrist
-                Third Value (2) = Finger
-
-                Every pros and cons has its base number 0 to 9, If user choose arm then it will be the first digit after decimal, the first digit has it value right? Let's say the first digit is 9, then it will choose the number 9 pros and cons. This is how it should work.
+                - Selected Digit: ${digit}
 
                 Sensitivity Settings Analysis:
-                Select a value from 0 to 9 based on user preference. Each value has specific pros and cons as outlined below:
+                0. Neutral/flat grip for balance
+                   Pros: The aiming preference you selected may be your "anchor point". You can either select a new aiming preference or senstailor will tailor a new sensitivity based on your current aiming preference. 
+                1. Fastest General Aim and Reaction Times
+                   Pros: This sensitivity will have the fastest general aim and fastest reaction times as well as fastest precision.
+                   Cons: This sensitivity will be bad for tracking and you may under shoot at times. It also will be biased to left hand side targets/shots and weaker at hitting right hand side targets/shots.
+                2. Balanced control and precision
+                   Pros: This sensitivity will have a balance between control, highest precision and even target selection on left and right.
+                   Cons: This sensitivity has a low "range"/"field of aim" so it will undershoot and struggle with tracking.
+                3. Best mouse control
+                   Pros: This sensitivity will have the best mouse control. You will feel a strong grip and be able to to make high accuracy adjustments and 180s.
+                   Cons: This sensitivity will be bad for tracking and will undershoot. It also will be biased to left hand side targets/shots and weaker at hitting right hand side targets/shots.
+                4. Great for flick aim and spray transfers
+                   Pros: This sensitivity is great for flick aim and spray transfers.
+                   Cons: This sensitivity will look shaky and can be very inconsistent. 
+                5. Best all-round aim
+                   Pros: This sensitivity has the best all round aim. It's the most consistent for tracking, flicking and precision aim. It also have even target selection on left and right.
+                   Cons: This sensitivity has a very high skill ceiling to master and get desired effects. It can look very shaky.
+                6. Highest first shot accuracy and tracking
+                   Pros: This sensitivity will have the highest first shot accuracy and tracking.
+                   Cons: This sensitivity will feel extremely shaky and inconsistent. 
+                7. Stable focus, good for movement and rhythm
+                   Pros: The sensitivity has great focus/looks stable and is great for movement and rhythm based aiming. It also has a range/"field of aim" 
+                   Cons: This sensitivity may cause you to overshoot. 
+                8. Pencil aim
+                   Pros: The sensitivity will have "pencil aim". It's amazing for prefiring, adjustments, tracking, flicking and has very high mouse control. It also has even target selection on left and right.
+                   Cons: This sensitivity will cause you to overshoot. It can feel very shaky and inconsistent and the movement can be sloppy at times.
+                9. Largest field of aim
+                   Pros: This sensitivity will has the largest field of aim. It's very fast for adjustments and reaction time. It can also be great for movement and pre firing.
+                   Cons: This sensitivity will be bad for micro adjustments/precision. At times it will feel inconsistent and shaky and overshoot a lot. 
 
-                0.
-                The aiming preference you selected may be your "anchor point". You can either select a new aiming preference or senstailor will tailor a new sensitivity based on your current aiming preference. 
-
-                1.
-                - Pros: Fastest general aim, fastest reaction times, fastest precision.
-                - Cons: Bad for tracking, may undershoot, biased to left-hand targets, weaker at right-hand targets.
-
-                2.
-                - Pros: Balanced control, high precision, even target selection.
-                - Cons: Low field of aim, may undershoot, struggles with tracking.
-
-                3.
-                - Pros: Strong grip, high accuracy adjustments, good for 180s.
-                - Cons: Bad for tracking, may undershoot, biased to left-hand targets, weaker at right-hand targets.
-
-                4.
-                - Pros: Excellent for flick aim and spray transfers.
-                - Cons: Can be shaky, inconsistent.
-
-                5.
-                - Pros: Consistent for tracking, flicking, precision aim, even target selection.
-                - Cons: High skill ceiling, can look shaky.
-
-                6.
-                - Pros: Great first shot accuracy, good for tracking.
-                - Cons: Feels shaky and inconsistent.
-
-                7.
-                - Pros: Stable, good for movement and rhythm-based aiming, good field of aim.
-                - Cons: May cause overshooting.
-
-                8.
-                - Pros: Excellent for prefiring, adjustments, tracking, flicking, high mouse control, even target selection.
-                - Cons: May overshoot, can be shaky and inconsistent, movement can be sloppy.
-
-                9.
-                - Pros: Very fast adjustments, quick reaction time, good for movement and prefiring.
-                - Cons: Bad for micro-adjustments, can feel inconsistent and shaky, may overshoot.
-
-
-                Choose the correct pros and cons based on aim preference. Do not modify the text. Just give me the pros and cons
+                Based on the selected digit (${digit}), provide the corresponding pros and cons.
             `;
+
 
             const gptResponse = await axios.post("http://localhost:3002/translate_game", { prompt: gptPrompt });
 
@@ -296,12 +281,6 @@ const TranslateGame = () => {
                 </div>
             ) : (
                 <form id='msform'>{renderStep()}</form>
-            )}
-            {valorantSens && (
-                <div className='mt-3' style={{ color: "green" }}>
-                    <h3>Sensitivity</h3>
-                    <p>{valorantSens}</p>
-                </div>
             )}
             {pros && (
                 <div className='mt-3' style={{ color: "green" }}>
