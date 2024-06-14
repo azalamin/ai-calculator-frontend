@@ -10,12 +10,12 @@ const Suggestion = () => {
         gameName: "",
         currentSensitivity: "",
         aimPreference: "",
-        gameId: ''
+        suggestionInput: "",
+        gameId: ""
     });
     const [gameList, setGameList] = useState([]);
     const [filteredGames, setFilteredGames] = useState([]);
     const [valorantSens, setValorantSens] = useState('');
-
     const [pros, setPros] = useState("");
     const [cons, setCons] = useState("");
     const [error, setError] = useState("");
@@ -27,7 +27,18 @@ const Suggestion = () => {
         fetchGameList();
     }, []);
 
-    console.log(valorantSens)
+    const suggestionOptions = [
+        "Neutral/flat grip for balance",
+        "Fastest General Aim and Reaction Times",
+        "Balanced control and precision",
+        "Best mouse control",
+        "Great for flick aim and spray transfers",
+        "Best all-round aim",
+        "Highest first shot accuracy and tracking",
+        "Stable focus, good for movement and rhythm",
+        "Pencil aim",
+        "Largest field of aim"
+    ];
 
     const fetchGameList = async () => {
         setLoading(true);
@@ -84,8 +95,7 @@ const Suggestion = () => {
             });
 
             const valorantSensitivity = response.data[0]?.sens1;
-            setValorantSens(valorantSensitivity)
-            console.log(valorantSensitivity)
+            setValorantSens(valorantSensitivity);
 
             // Determine the digit based on aim preference
             const sensitivityDigits = valorantSensitivity.split('.')[1];
@@ -142,14 +152,11 @@ const Suggestion = () => {
                 Based on the selected digit (${digit}), provide the corresponding pros and cons.
             `;
 
-
             const gptResponse = await axios.post("http://localhost:3002/translate_game", { prompt: gptPrompt });
 
             const data = gptResponse.data.translatedData;
             const prosMatch = data.match(/Pros:(.*)Cons:/s);
             const consMatch = data.match(/Cons:(.*)/s);
-
-            console.log(gptResponse.data.translatedData)
 
             if (prosMatch) setPros(prosMatch[1].trim());
             if (consMatch) setCons(consMatch[1].trim());
@@ -274,6 +281,38 @@ const Suggestion = () => {
                             />{" "}
                             Fingers
                         </label>
+                        <input
+                            type='button'
+                            className='previous action-button'
+                            value='Previous'
+                            onClick={handlePrevStep}
+                        />
+                        <input
+                            type='button'
+                            className='next action-button'
+                            value='Next'
+                            onClick={handleNextStep}
+                        />
+                    </fieldset>
+                );
+            case 4:
+                return (
+                    <fieldset>
+                        <h3 className='fs-subtitle'>Question # 4</h3>
+                        <h2 className='fs-title'>What kind of suggestion are you looking for?</h2>
+                        <input
+                            type='text'
+                            name='suggestionInput'
+                            placeholder='Type to get suggestions'
+                            value={answers.suggestionInput}
+                            onChange={handleInputChange}
+                            list="suggestionOptions"
+                        />
+                        <datalist id="suggestionOptions">
+                            {suggestionOptions.map((option, index) => (
+                                <option key={index} value={option} />
+                            ))}
+                        </datalist>
                         <input
                             type='button'
                             className='previous action-button'
