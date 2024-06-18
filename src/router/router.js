@@ -5,6 +5,7 @@ import ConvertGame from "../components/Calculator/ConvertGame";
 import GptSuggestion from "../components/Calculator/GptSuggestion";
 import Suggestion from "../components/Calculator/Suggestion";
 import TranslateGame from "../components/Calculator/TranslateGame";
+import Checkout from "../components/Checkout";
 import Contact from "../components/Contact";
 import Faq from "../components/Faq";
 import FinalFeedback from "../components/FinalFeedback";
@@ -56,6 +57,14 @@ const router = createBrowserRouter([
                 element: (
                     <PrivateRoute>
                         <Payment />
+                    </PrivateRoute>
+                ),
+            },
+            {
+                path: "checkout",
+                element: (
+                    <PrivateRoute>
+                        <Checkout />
                     </PrivateRoute>
                 ),
             },

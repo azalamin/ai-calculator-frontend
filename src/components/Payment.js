@@ -1,18 +1,26 @@
 // Payment.js
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useHistory for redirection
 import './Payment.css'; // Import CSS module for scoped styles
 
-function Payment() {
+const Payment = () => {
+    const [plan, setPlan] = useState('dev');
+
+    const navigate = useNavigate(); // Initialize useNavigate hook
+
+    const handleRedirect = (selectedPlan) => {
+        setPlan(selectedPlan);
+        navigate(`/checkout?plan=${selectedPlan}`); // Redirect to the checkout page with the selected plan
+    };
+
     return (
         <div>
             <h1>Choose the plan that fits you</h1>
-            <p>
-                You can choose plan from following pricing table!!
-            </p>
+            <p>You can choose plan from following pricing table!!</p>
 
             <div className="pricing">
-                <div className="plan">
+                <div className="plan" onClick={() => handleRedirect('dev')}>
                     <h2>Dev</h2>
                     <div className="price">FREE</div>
                     <ul className="features">
@@ -24,7 +32,7 @@ function Payment() {
                     </ul>
                     <button>Signup</button>
                 </div>
-                <div className="plan popular">
+                <div className="plan popular" onClick={() => handleRedirect('pro')}>
                     <span>Most Popular</span>
                     <h2>Pro</h2>
                     <div className="price">$10/month</div>
@@ -37,7 +45,7 @@ function Payment() {
                     </ul>
                     <button>Buy Now</button>
                 </div>
-                <div className="plan">
+                <div className="plan" onClick={() => handleRedirect('enterprise')}>
                     <h2>Enterprise</h2>
                     <div className="price">Custom Pricing</div>
                     <ul className="features">
@@ -52,6 +60,6 @@ function Payment() {
             </div>
         </div>
     );
-}
+};
 
 export default Payment;
