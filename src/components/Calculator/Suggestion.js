@@ -23,6 +23,12 @@ const CalculateSensitivity = () => {
         fetchGames();
     }, []);
 
+    useEffect(() => {
+        if (sens1Value !== null) {
+            convertToOriginalGame();
+        }
+    }, [sens1Value]);
+
     const fetchGames = async () => {
         try {
             const response = await fetch('http://localhost:3002/fetchGameNames?gameName=random');
@@ -91,7 +97,6 @@ const CalculateSensitivity = () => {
             setGptSuggestion(data.suggestion);
             setGptPros(data.pros);
             setGptCons(data.cons);
-            convertToOriginalGame();
             setSens1Value(data.newSensitivity);
         } catch (error) {
             console.error('Error fetching GPT suggestion:', error);
@@ -100,6 +105,7 @@ const CalculateSensitivity = () => {
     };
 
     const convertToOriginalGame = async () => {
+        console.log('New Sensitivity Value from Original', sens1Value)
         try {
             const response = await fetch('http://localhost:3002/convertToOriginalGame', {
                 method: 'POST',
@@ -289,7 +295,7 @@ const CalculateSensitivity = () => {
             case 4:
                 return (
                     <fieldset>
-                        <p>Current Sensitivity: {currentSensitivity}</p>
+                        <p>Get a Suggestion</p>
 
                         <div>
                             <input
@@ -301,8 +307,8 @@ const CalculateSensitivity = () => {
                             <button type="button" className="btn btn-primary mt-2" onClick={fetchGptSuggestion}>Get Suggestion</button>
                             {gptSuggestion && (
                                 <div className="gpt-suggestion mt-3">
-                                    <p ><strong>Suggested Sensitivity Value is: </strong> {sens1Value}</p>
-                                    <p><strong>Original Game Sensitivity:</strong> {originalGameSensitivity}</p>
+                                    {/* <p ><strong>Suggested Sensitivity Value is: </strong> {sens1Value}</p> */}
+                                    <p><strong>Senstailor Recommendation:</strong> {originalGameSensitivity}</p>
                                     <p ><strong>Suggestion:</strong> {gptSuggestion}</p>
                                     <p className="text-success"><strong>Pros:</strong> {gptPros}</p>
                                     <p className="text-danger"><strong>Cons:</strong> {gptCons}</p>

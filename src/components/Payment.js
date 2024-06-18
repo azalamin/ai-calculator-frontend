@@ -1,7 +1,7 @@
 // Payment.js
 
 import React from 'react';
-import styles from './Payment.css'; // Import CSS module for scoped styles
+import './Payment.css'; // Import CSS module for scoped styles
 
 function Payment() {
     return (
