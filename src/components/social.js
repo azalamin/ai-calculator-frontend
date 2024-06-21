@@ -20,6 +20,7 @@ const Social = () => {
       try {
         const response = await axios.get('http://localhost:3002/videos');
         setVideos(response.data);
+        console.log(response)
       } catch (error) {
         console.error('Error fetching videos:', error);
       } finally {
@@ -44,7 +45,7 @@ const Social = () => {
     };
 
     fetchComments();
-  }, [comments]);
+  }, []);
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
