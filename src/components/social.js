@@ -11,6 +11,21 @@ const Social = () => {
   const [comment, setComment] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [videos, setVideos] = useState([]);
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const response = await axios.get('http://localhost:3002/videos');
+        setVideos(response.data);
+      } catch (error) {
+        console.error('Error fetching videos:', error);
+      }
+    };
+
+    fetchVideos();
+  }, []);
+
 
   useEffect(() => {
     // Fetch comments from the backend
@@ -58,6 +73,40 @@ const Social = () => {
   return (
     <div className="social-container">
       <div className="container my-5">
+        <div className="container mt-5">
+          <h1 className="my-4">Latest Videos</h1>
+          <div className="row">
+            {videos.slice(0, 6).map(video => {
+              // Truncate the title if it's longer than 32 characters
+              const truncatedTitle = video.snippet.title.length > 36
+                ? video.snippet.title.substring(0, 36) + '...'
+                : video.snippet.title;
+
+              return (
+                <div key={video.id.videoId} className="col-md-4">
+                  <div className="card mb-4 shadow-sm">
+                    <img
+                      src={video.snippet.thumbnails.high.url}
+                      alt={video.snippet.title}
+                      className="card-img-top"
+                    />
+                    <div className="card-body">
+                      <h5 className="card-title">{truncatedTitle}</h5>
+                      <a
+                        href={`https://www.youtube.com/watch?v=${video.id.videoId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-primary"
+                      >
+                        Watch Video
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
         <div className="container my-5">
           <div style={{ maxWidth: '700px', top: '-80px' }} className="mx-auto text-secondary">
             <h1 className="font-weight-bold text-dark">Revenge of the Never Trumpers</h1>
@@ -91,7 +140,7 @@ const Social = () => {
                     xmlns="http://www.w3.org/2000/svg"
                     xmlnsXlink="http://www.w3.org/1999/xlink"
                     xmlSpace="preserve"
-                    xmlnsSerif="http://www.serif.com/"
+                    xmlnsserif="http://www.serif.com/"
                     style={{
                       fillRule: 'evenodd',
                       clipRule: 'evenodd',
@@ -114,7 +163,7 @@ const Social = () => {
                     xmlns="http://www.w3.org/2000/svg"
                     xmlnsXlink="http://www.w3.org/1999/xlink"
                     xmlSpace="preserve"
-                    xmlnsSerif="http://www.serif.com/"
+                    xmlnsserif="http://www.serif.com/"
                     style={{
                       fillRule: 'evenodd',
                       clipRule: 'evenodd',
@@ -137,7 +186,7 @@ const Social = () => {
                     xmlns="http://www.w3.org/2000/svg"
                     xmlnsXlink="http://www.w3.org/1999/xlink"
                     xmlSpace="preserve"
-                    xmlnsSerif="http://www.serif.com/"
+                    xmlnsserif="http://www.serif.com/"
                     style={{
                       fillRule: 'evenodd',
                       clipRule: 'evenodd',
