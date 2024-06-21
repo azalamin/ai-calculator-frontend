@@ -295,28 +295,34 @@ const Social = () => {
         </div>
         <div className="container">
           <div className="be-comment-block">
-            <h1 className="comments-title">Comments ({comments.length})</h1>
-
-            {comments.map((comment) => (
-              <div key={comment._id} className="be-comment">
-                <div className="be-img-comment">
-                  <a href="#">
-                    <img src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="" className="be-ava-comment" />
-                  </a>
-                </div>
-                <div className="be-comment-content">
-                  <span className="be-comment-name">
-                    <a href="#">{comment.name}</a>
-                  </span>
-                  <span className="be-comment-time">
-                    <i className="fa fa-clock-o"></i> {new Date(comment.createdAt).toLocaleString()}
-                  </span>
-                  <p className="be-comment-text">
-                    {comment.comment}
-                  </p>
-                </div>
+            {loadingComments ? (
+              <div className="d-flex justify-content-center my-5">
+                <ClipLoader size={50} color={"#123abc"} loading={true} />
               </div>
-            ))}
+            ) : <>
+              <h1 className="comments-title">Comments ({comments.length})</h1>
+              {comments.map((comment) => (
+                <div key={comment._id} className="be-comment">
+                  <div className="be-img-comment">
+                    <a href="#">
+                      <img src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="" className="be-ava-comment" />
+                    </a>
+                  </div>
+                  <div className="be-comment-content">
+                    <span className="be-comment-name">
+                      <a href="#">{comment.name}</a>
+                    </span>
+                    <span className="be-comment-time">
+                      <i className="fa fa-clock-o"></i> {new Date(comment.createdAt).toLocaleString()}
+                    </span>
+                    <p className="be-comment-text">
+                      {comment.comment}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </>}
+
 
             {/* Comment Form */}
             <form className="form-block" onSubmit={handleCommentSubmit}>
