@@ -14,6 +14,24 @@ const Social = () => {
   const [videos, setVideos] = useState([]);
   const [loadingVideos, setLoadingVideos] = useState(true); // Spinner for videos
   const [loadingComments, setLoadingComments] = useState(true);
+  const [loadingTweets, setLoadingTweets] = useState(true);
+  const [tweets, setTweets] = useState([]); // State to store tweets
+
+
+  useEffect(() => {
+    const fetchTweets = async () => {
+      try {
+        const response = await axios.get('http://localhost:3002/tweets');
+        setTweets(response.data);
+      } catch (error) {
+        console.error('Error fetching tweets:', error);
+      } finally {
+        setLoadingTweets(false);
+      }
+    };
+
+    fetchTweets();
+  }, []);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -116,6 +134,36 @@ const Social = () => {
                   </div>
                 );
               })}
+            </div>
+          )}
+        </div>
+
+        <div className="container mt-5">
+          <h1 className="my-4">Latest Tweets</h1>
+          {loadingTweets ? (
+            <div className="d-flex justify-content-center my-5">
+              <ClipLoader size={50} color={"#123abc"} loading={true} />
+            </div>
+          ) : (
+            <div className="row">
+              {tweets.slice(0, 6).map(tweet => (
+                <div key={tweet.id} className="col-md-4">
+                  <div className="card mb-4 shadow-sm">
+                    <div className="card-body">
+                      <h5 className="card-title">@{tweet.username}</h5>
+                      <p className="card-text">{tweet.text}</p>
+                      <a
+                        href={`https://twitter.com/${tweet.username}/status/${tweet.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-primary"
+                      >
+                        View Tweet
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
